@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import shapefile as shp
 import seaborn as sns
+import geopandas as gdp
 
 
 def read_shapefile(sf) -> pd.DataFrame:
@@ -64,7 +65,7 @@ def plot_map_fill(id, sf, x_lim=None, y_lim=None, figsize=(11,9), color='r'):
     for shape in sf.shapeRecords():
         x = [i[0] for i in shape.shape.points[:]]
         y = [i[1] for i in shape.shape.points[:]]
-        ax.plot(x, y, 'k')
+        ax.plot(x, y, 'k.')
 
     shape_ex = sf.shape(id)
     x_lon = np.zeros((len(shape_ex.points), 1))
@@ -81,13 +82,25 @@ def plot_map_fill(id, sf, x_lim=None, y_lim=None, figsize=(11,9), color='r'):
 
 def main():
     sns.set(style="whitegrid", palette="pastel", color_codes=True)
-    sns.mpl.rc("figure", figsize=(10, 6))
+    #sns.mpl.rc("figure", figsize=(10, 6))
 
     shp_path = "..\\usshapefiles\\s_11au16.shp"
 
-    sf = shp.Reader(shp_path)
-    df = read_shapefile(sf)
+    sf = gdp.read_file(shp_path)
+    print(sf['NAME'])
 
+    df = pd.read_csv('..\\datasets\\bee-colony-loss-dataset-2008.csv')
+    print(df.columns)
+    df1 = df.rename(columns={"State" : "NAME", "Total Winter All Loss" : "loss"})
+    print(df1.columns)
+
+    newsf = sf.merge(df1.drop(columns=["Beekeepers", "Beekeepers Exclusive to State", "Colonies", "Colonies Exclusive to State"]), on="NAME")
+    print(newsf.columns)
+
+
+    #sf.plot()
+    #sf2 = shp.Reader(shp_path)
+    #df = read_shapefile(sf)
     #STATE_NAME = "NC"
     #com_id = df[df.STATE == "NC"].index.array[0]
     #plot_shape(com_id, sf, STATE_NAME)
@@ -97,7 +110,7 @@ def main():
     contiguous_y = (24, 50)
 
     #plot_map(sf, x_lim=contiguous_x, y_lim=contiguous_y)
-    plot_map_fill(13, sf, x_lim=contiguous_x, y_lim=contiguous_y, color='y')
+    #plot_map_fill(26, sf, x_lim=contiguous_x, y_lim=contiguous_y, color='r')
     plt.show()
 
 
